@@ -43,6 +43,6 @@ export function sendError(
                     message,
                     code,
                     ...(details ? {details} : {})
-                }
+                }  
                });
 }
