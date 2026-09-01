@@ -3,15 +3,23 @@
     "target": "ESNext",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-
+    
     "rootDir": "./src",
     "outDir": "./dist",
 
-    "strict": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@config/*": ["config/*"],
+      "@db/*": ["db/*"],
+      "@middleware/*": ["middleware/*"],
+      "@modules/*": ["modules/*"],
+      "@shared/*": ["shared/*"]
+    },
 
+    "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-
+    
     "types": ["node"],
 
     "sourceMap": true,
@@ -26,7 +34,8 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
 
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
