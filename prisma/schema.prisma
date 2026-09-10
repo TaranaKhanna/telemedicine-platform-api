@@ -18,6 +18,20 @@ enum Role {
   ADMIN
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum ConsultationOutcome {
+  RESOLVED
+  FOLLOW_UP_REQUIRED
+  REFERRED
+}
+
 model User {
   id String @id @default(uuid())
   email String  @unique 
@@ -26,6 +40,7 @@ model User {
   isActive Boolean @default(true)
 
   profile Profile?
+  doctors Docter?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,4 +64,121 @@ model Profile {
   updatedAt DateTime @updatedAt
 
   @@map("profiles")
+}
+
+model Docter {
+  id String @id @default(uuid())
+  userId String @unique
+  user User @relation(fields: [uuid], references: [id], onDelete: Cascade)
+
+  speciality String
+  licenseNumber String @unique
+  yearsOfExperience Int @default(0)
+  consultationFee Decimal @db.Decimal(10, 2)
+  bio String?
+  isVerified Boolean @default(false)
+
+  availabilitySlots AvailabilitySlot[]
+
+  createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+
+   @@map("doctors")
+}
+
+model AvailabilitySlot {
+  id String @id @default(uuid())
+  doctorId String
+  doctor Docter @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  startTime DateTime
+  endTime DateTime
+  isBooked Boolean @default(false)
+
+  booking Booking?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([doctorId, startTime])
+  @@map("availability_slots")
+}
+
+model Booking {
+  id String @default(uuid())
+
+  patientId String
+  patient User @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  doctorId String
+  doctor Docter @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  slotId String
+  slot AvailabilitySlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
+  status BookingStatus @default(PENDING)
+  reason String?
+
+  consultation Consultation?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([doctorId, status])
+  @@map("bookings)
+}
+
+model Consultation {
+    id  String  @id @default(uuid())
+
+  bookingId String  @unique
+  booking Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  startedAt DateTime?
+  endedAt DateTime?
+
+  notes String?
+  outcome ConsultationOutcome?
+
+  prescription Prescription?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("consultations")
+}
+
+model Prescription {
+  id  String @id @default(uuid())
+
+  consultationId String @unique
+  consultation  Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+
+  medication  String
+  dosage  String
+  instructions  String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("prescriptions")
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  actorId String?
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  action  String
+  entityType String
+  entityId  String?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }
